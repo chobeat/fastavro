@@ -650,7 +650,8 @@ cdef class Writer(object):
                  codec='null',
                  sync_interval=1000 * SYNC_SIZE,
                  metadata=None,
-                 validator=None):
+                 validator=None,
+                 parse_schema=True):
         cdef bytearray tmp = bytearray()
         self.fo = fo
         self.schema = schema
@@ -670,7 +671,8 @@ cdef class Writer(object):
 
         write_header(tmp, self.metadata, self.sync_marker)
         self.fo.write(tmp)
-        acquaint_schema(self.schema)
+        if parse_schema:
+            acquaint_schema(self.schema)
 
     def dump(self):
         cdef bytearray tmp = bytearray()
@@ -701,7 +703,8 @@ def writer(fo,
            codec='null',
            sync_interval=1000 * SYNC_SIZE,
            metadata=None,
-           validator=None):
+           validator=None,
+           parse_schema=True):
     output = Writer(
         fo,
         schema,
@@ -709,6 +712,7 @@ def writer(fo,
         sync_interval,
         metadata,
         validator,
+        parse_schema,
     )
 
     for record in records:
@@ -716,9 +720,10 @@ def writer(fo,
     output.flush()
 
 
-def schemaless_writer(fo, schema, record):
+def schemaless_writer(fo, schema, record, parse_schema=True):
     cdef bytearray tmp = bytearray()
-    acquaint_schema(schema)
+    if parse_schema:
+        acquaint_schema(schema)
     write_data(tmp, record, schema)
     fo.write(tmp)
 
